@@ -8,12 +8,6 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
-
-const outOfRange = 99999
-const daysInLastSixMonths = 183
-const weeksInLastSixMonths = 26
-
-type column []int
 type cell struct {
 	time string
 	value int
@@ -24,14 +18,6 @@ func stats(email string) {
 	commits := processRepositories(email)
 	printCommitsStats(commits)
 }
-
-// getBeginningOfDay given a time.Time calculates the start time of that day
-func getBeginningOfDay(t time.Time) time.Time {
-	year, month, day := t.Date()
-	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
-	return startOfDay
-}
-
 // fillCommits given a repository found in `path`, gets the commits and
 // puts them in the `commits` map, returning it when completed
 func fillCommits(email string, path string, commits map[string]int) map[string]int {
@@ -127,18 +113,22 @@ func printGraph(commits map[string]int) {
 		i++
 	}
 	sort.Strings(keys)
-	for _, k := range keys {
+	for i, k := range keys {
 		if commits[k] == 0 {
 			continue
 		}
 		c := cell{time: k, value: commits[k]}
-
-		printCell(c)
+		line := false
+		if i % 5 == 0 {
+			line = true
+		}
+		printCell(c, line)
 	}
+	fmt.Println()
 
 }
 
-func printCell(c cell) {
+func printCell(c cell, line bool) {
 	val := c.value
 	escape := "\033[0;37;30m"
 	switch {
@@ -150,5 +140,9 @@ func printCell(c cell) {
 		escape = "\033[1;30;42m"
 	}
 
-	fmt.Printf(escape+" %s \033[0m\n", fmt.Sprintf("%s(%d)", c.time, val))
+	if line {
+		fmt.Printf(escape+" %s \033[0m\n", fmt.Sprintf("%s(%d)", c.time, val))
+	} else {
+		fmt.Printf(escape+" %s \033[0m", fmt.Sprintf("%s(%d)", c.time, val))
+	}
 }
