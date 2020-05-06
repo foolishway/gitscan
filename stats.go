@@ -105,24 +105,27 @@ func printCommitsStats(commits map[string]int) {
 }
 
 func printGraph(commits map[string]int) {
-	keys := make([]string, len(commits))
+	keys := make([]string, 0)
 
 	i := 0
-	for k, _ := range commits {
-		keys[i] =k
+	for k, v := range commits {
+		if v == 0 {
+			continue
+		}
+		keys = append(keys, k)
 		i++
 	}
 	sort.Strings(keys)
+	cells := make([]cell, len(keys))
 	for i, k := range keys {
-		if commits[k] == 0 {
-			continue
-		}
-		c := cell{time: k, value: commits[k]}
+		cells[i] = cell{time: k, value: commits[k]}
+	}
+	for i := 0; i < len(cells); i++ {
 		line := false
-		if i % 5 == 0 {
+		if (i + 1) % 5 == 0 {
 			line = true
 		}
-		printCell(c, line)
+		printCell(cells[i], line)
 	}
 	fmt.Println()
 
